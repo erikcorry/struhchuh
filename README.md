@@ -24,7 +24,7 @@ designed for this purpose.
 The function being tested is not exactly strchr, since the length is
 known and null bytes are ignored.  A second variant finds two consecutive
 bytes (for most of the algorithms they don't have to be consecutive, just
-a fixed distance from each other, at most a word apart.  For example,
+a fixed distance from each other, at most a word apart).  For example,
 some compilers spend an appreciable time looking for the ``*/`` that ends as comment.  The two bytes do not have to be two-byte aligned.
 
 Functions are tested on a small input (one where the characters are
@@ -66,7 +66,7 @@ Documentation for SSE2 instructions
 https://software.intel.com/en-us/node/524239
 
 A big inspiration for the SSE2 version of searching for a two-byte
-sequence was misachan's https://mischasan.wordpress.com/2011/07/16/convergence-sse2-and-strstr/ but he does extra work to find a match accross a
+sequence was misachan's https://mischasan.wordpress.com/2011/07/16/convergence-sse2-and-strstr/ but he does extra work to find a match across a
 word boundary, which I avoid.
 
 The GNU C library uses some similar tricks for strlen, but does
