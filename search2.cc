@@ -249,6 +249,37 @@ int test_pure_twobsse2(const char* s, int len) {
   return -127;
 }
 
+// Search for "__" (double underscore) using only aligned SSE2 128 bit loads.
+// This may load data either side of the string, but can never cause a fault
+// because the loads are in 128 bit sections also covered by the string.
+// Use this algorithm if you have SSE or equivalent and you are searching for a
+// specific repeated character.
+// Returns the position of the double underscore or a negative number if no
+// double underscore is found.
+int search_for_double_underscore(const char* s, int len) {
+  int last_bits = (uintptr_t)s & 15;
+  int alignment_mask = 0xffff << last_bits;
+  const uint128_t underscore_pattern = _mm_set1_epi8('_');
+  int first_char = 0;
+  for (int i = -last_bits ; i < len; i += 16) {
+    // Load aligned to a 128 bit XMM2 register.
+    uint128_t raw = *(uint128_t*)(s + i);
+    int second_char = _mm_movemask_epi8(_mm_cmpeq_epi8(raw, underscore_pattern));
+    first_char += (second_char & alignment_mask) << 1;
+    // We need to find out if the nth bit of second_char is set and also
+    // the n-1th bit of first_char.
+    int combined = first_char & second_char;
+    if (combined) {
+      int result = i + __builtin_ffs(combined) - 2;
+      if (result >= len - 1) return -127;
+      return result;
+    }
+    first_char >>= 16;
+    alignment_mask = 0xffff;
+  }
+  return -127;
+}
+
 // Search for "*" using a variant of Alan Mycroft's trick for finding null
 // bytes in a string: Mycroft observed that you can load a 4 byte word and then
 // do:
