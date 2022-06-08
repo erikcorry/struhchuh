@@ -168,11 +168,13 @@ void test(const char* name, searcher* testee, int bytes) {
 int main() {
   set_up();
   test("naive", test_naive, 1);
+  test("memchr", test_memchr, 1);
   test("pure_mycroft4", test_pure_mycroft4, 1);
   test("mycroft4", test_mycroft4, 1);
   test("mycroft", test_mycroft, 1);
   test("pure_mycroft", test_pure_mycroft, 1);
   test("pure_sse2", test_pure_sse2, 1);
+  test("split_sse2", test_split_sse2, 1);
   test("sse2", test_sse2, 1);
   test("sse2_and_mycroft4", test_sse2_and_mycroft4, 1);
   test("twobyte", test_twobyte, 2);
@@ -182,11 +184,13 @@ int main() {
   test("twobsse2", test_twobsse2, 2);
   test("pure_twobsse2", test_pure_twobsse2, 2);
   time(test_naive, "naive");
+  time(test_memchr, "memchr");
   time(test_pure_mycroft4, "pure_mycroft4");
   time(test_mycroft4, "mycroft4");
   time(test_mycroft, "mycroft");
   time(test_pure_mycroft, "pure_mycroft");
   time(test_pure_sse2, "pure_sse2");
+  time(test_split_sse2, "split_sse2");
   time(test_sse2, "sse2");
   time(test_sse2_and_mycroft4, "sse2_and_mycroft4");
   time(test_twobyte, "twobyte");
