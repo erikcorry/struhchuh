@@ -78,7 +78,7 @@ void time(searcher* fn, const char* name) {
       ns = ps / (1000.0 * limit);
     }
   }
-  printf("%17s:                %.1f GiB/s   %.1f ns/string\n", name, gb, ns);
+  printf("%17s:                %.1f GiB/s   %.1f ns/search\n", name, gb, ns);
 }
 
 void test(const char* name, searcher* testee, int bytes) {
@@ -195,7 +195,6 @@ int main() {
   test("pure_twobsse2", test_pure_twobsse2, 2);
   printf("\nSingle char search\n\n");
   time(test_naive, "naive");
-  time(test_memchr, "memchr");
   time(test_pure_mycroft4, "pure_mycroft4");
   time(test_mycroft4, "mycroft4");
   time(test_mycroft, "mycroft");
@@ -203,6 +202,7 @@ int main() {
   time(test_pure_sse2, "pure_sse2");
   time(test_sse2, "sse2");
   time(test_sse2_and_mycroft4, "sse2_and_mycroft4");
+  time(test_memchr, "memchr");
   printf("\nBigram search\n\n");
   time(test_twobyte, "twobyte");
   time(test_mycroft2, "mycroft2");

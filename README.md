@@ -75,46 +75,37 @@ a waste, especially if a the sequence is quickly found. https://sourceware.org/g
 
 ## Results
 
-For finding a single byte, results from my rather lame laptop on small and large inputs:
+For finding a single byte, results from my fast desktop on small inputs (ns/search)
+and large inputs (GiB/s).
 
 ```
-(small)             naive:  2550ms
-(  big)             naive:  5747ms
-(small)     pure_mycroft4:  2040ms
-(  big)     pure_mycroft4:  2648ms
-(small)          mycroft4:  2756ms
-(  big)          mycroft4:  2451ms
-(small)           mycroft:  2819ms
-(  big)           mycroft:  1275ms
-(small)      pure_mycroft:  1741ms
-(  big)      pure_mycroft:  1348ms
-(small)         pure_sse2:   690ms
-(  big)         pure_sse2:   463ms
-(small)              sse2:  3019ms
-(  big)              sse2:   423ms
-(small) sse2_and_mycroft4:  3016ms
-(  big) sse2_and_mycroft4:   434ms
+            naive:                  4.0 GiB/s  9.9 ns/search
+    pure_mycroft4:                  7.4 GiB/s  5.5 ns/search
+         mycroft4:                  7.4 GiB/s  9.3 ns/search
+          mycroft:                 14.1 GiB/s  3.7 ns/search
+     pure_mycroft:                 14.7 GiB/s  2.6 ns/search
+        pure_sse2:                 38.5 GiB/s  4.4 ns/search
+             sse2:                 36.4 GiB/s  4.6 ns/search
+sse2_and_mycroft4:                 36.4 GiB/s  4.1 ns/search
+           memchr:                153.6 GiB/s  2.6 ns/search
 ```
 
 The "pure" algorithms are the ones that only use word-sized loads.  They
 are the clear winners, overall, though the ones that step a byte at a time
 until alignment are marginally faster searching very large strings.
 
-For finding two-byte sequences, we get
+memchr is probably using AVX-512 unaligned masked non-faulting loads.
+
+For finding two-byte sequences (not aligned), we get:
 
 ```
-(small)           twobyte:  3076ms  // The naive algorithm.
-(  big)           twobyte:  7907ms
-(small)          mycroft2:  3320ms
-(  big)          mycroft2:  2301ms
-(small)     pure_mycroft2:  2347ms
-(  big)     pure_mycroft2:  3010ms
-(small)           twosse2:  3194ms
-(  big)           twosse2:   800ms
-(small)          twobsse2:  3222ms
-(  big)          twobsse2:   837ms
-(small)     pure_twobsse2:   978ms
-(  big)     pure_twobsse2:   939ms
+          twobyte:                 4.0 GiB/s   10.9 ns/search  // Naive implemntation.
+         mycroft2:                 9.9 GiB/s    3.8 ns/search
+    pure_mycroft2:                10.0 GiB/s    4.9 ns/search
+          twosse2:                21.6 GiB/s    6.7 ns/search
+    twosse2_early:                28.5 GiB/s   10.3 ns/search
+         twobsse2:                14.0 GiB/s    6.1 ns/search
+    pure_twobsse2:                13.9 GiB/s    2.8 ns/search
 ```
 
 Again the pure algorithms look like the clear winners unless you know
