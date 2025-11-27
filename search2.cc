@@ -193,6 +193,43 @@ int test_twosse2(const char* s, int len) {
 // Search for "*#" by starting with at least one byte load and switching to
 // aligned SSE2 128 bit loads when an aligned address is reached. This may load
 // data after the end of the string, but can never cause a fault because the
+// loads are in 128 bit sections also covered by the string.  Bails out early
+// if one of the masks is zero.
+int test_twosse2_early(const char* s, int len) {
+  int i = 0;
+  while (i < len - 1) {
+    if (s[i] == '*' && s[i + 1] == '#') {
+      return i;
+    }
+    i++;
+    if (((uintptr_t)(s + i) & 15) == 0) break;
+  }
+  if (i >= len - 1) return -127;
+  const uint128_t star_pattern = _mm_set1_epi8('*');
+  const uint128_t hash_pattern = _mm_set1_epi8('#');
+  int prev = (s[i - 1] == '*') << 15;
+  for ( ; i < len; i += 16) {
+    // Load aligned to a 128 bit XMM2 register.
+    uint128_t raw = *(uint128_t*)(s + i);
+    int hashes = _mm_movemask_epi8(_mm_cmpeq_epi8(raw, hash_pattern));
+    int stars = _mm_movemask_epi8(_mm_cmpeq_epi8(raw, star_pattern));
+    if (hashes != 0) {
+      if ((prev & 0x8000) && (hashes & 1)) return i - 1;
+      int combined = (stars << 1) & hashes;
+      if (combined) {
+        int result = i + __builtin_ffs(combined) - 2;
+        if (result >= len - 1) return -127;
+        return result;
+      }
+    }
+    prev = stars;
+  }
+  return -127;
+}
+
+// Search for "*#" by starting with at least one byte load and switching to
+// aligned SSE2 128 bit loads when an aligned address is reached. This may load
+// data after the end of the string, but can never cause a fault because the
 // loads are in 128 bit sections also covered by the string.  This one is
 // slightly simpler, but also slightly slower than test_twosse2.
 int test_twobsse2(const char* s, int len) {

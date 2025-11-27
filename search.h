@@ -15,5 +15,6 @@ int test_split_sse2(const char* s, int len);
 int test_sse2(const char* s, int len);
 int test_sse2_and_mycroft4(const char* s, int len);
 int test_twosse2(const char* s, int len);
+int test_twosse2_early(const char* s, int len);
 int test_twobsse2(const char* s, int len);
 int test_pure_twobsse2(const char* s, int len);

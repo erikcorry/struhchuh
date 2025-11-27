@@ -180,6 +180,7 @@ int main() {
   test("mycroft2", test_mycroft2, 2);
   test("pure_mycroft2", test_pure_mycroft2, 2);
   test("twosse2", test_twosse2, 2);
+  test("twosse2_early", test_twosse2_early, 2);
   test("twobsse2", test_twobsse2, 2);
   test("pure_twobsse2", test_pure_twobsse2, 2);
   time(test_naive, "naive");
@@ -195,6 +196,7 @@ int main() {
   time(test_mycroft2, "mycroft2");
   time(test_pure_mycroft2, "pure_mycroft2");
   time(test_twosse2, "twosse2");
+  time(test_twosse2_early, "twosse2_early");
   time(test_twobsse2, "twobsse2");
   time(test_pure_twobsse2, "pure_twobsse2");
 }
