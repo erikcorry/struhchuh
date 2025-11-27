@@ -73,67 +73,6 @@ int test_pure_sse2(const char* s, int len) {
   return -127;
 }
 
-int test_split_sse2(const char* s, int len) {
-  if (len == 0) return -127;
-  const uint128_t mask = _mm_set1_epi8('*');
-  int last_bits = (uintptr_t)s & 31;
-  const char* p;
-  if (last_bits <= 16) {
-    // If we are in the first half of a 32 bit area we can't fault
-    // by reading too much so we do an unaligned load and that may
-    // be all we need for short strings.
-    printf("Unaligned load at %p (len %d)\n", s, (int)len);
-    fflush(stdout);
-    uint128_t raw = *(uint128_t*)(s);
-    uint128_t comparison = _mm_cmpeq_epi8(raw, mask);
-    int bits = _mm_movemask_epi8(comparison);
-    if (bits) {
-      int answer = __builtin_ffs(bits) - 1;
-      if (answer >= len) return -127;
-      return answer;
-    }
-    // Set p to the next 16 byte aligned boundary.
-    p = (const char*)(((uintptr_t)s & ~15ULL) + 16);
-  } else {
-    // We are in the second half of a 32 bit area so we have to step
-    // back to the last 16 bit boundary.
-    last_bits &= 0x1f;
-    int alignment_mask = 0xffff << last_bits;
-    // Set p to the previous aligned boundary.
-    p = (const char*)(((uintptr_t)s & ~15ULL));
-    printf("Artificially rounded down load at %p\n", p);
-    fflush(stdout);
-    uint128_t raw = *(uint128_t*)(p);
-    uint128_t comparison = _mm_cmpeq_epi8(raw, mask);
-    int bits = _mm_movemask_epi8(comparison) & alignment_mask;
-    if (bits) {
-      int answer = __builtin_ffs(bits) - 1 - last_bits;
-      if (answer >= len) return -127;
-      return answer;
-    }
-    p += 16;
-  }
-  const char* end = s + len;
-  for (; p < end; p += 16) {
-    // Load aligned to a 128 bit XMM2 register.
-    printf("Continuation load at %p/%p\n", p, end);
-    fflush(stdout);
-    uint128_t raw = *(uint128_t*)(p);
-    // Puts 0xff or 0x00 in the corresponding bytes depending on whether the
-    // bytes in the input are equal. PCMPEQB.
-    uint128_t comparison = _mm_cmpeq_epi8(raw, mask);
-    // Takes the top bit of each byte and puts it in the corresponding bit of a
-    // normal integer.  PMOVMSKB.
-    int bits = _mm_movemask_epi8(comparison);
-    if (bits) {
-      int answer = p - s + __builtin_ffs(bits) - 1;
-      if (answer >= len) return -127;
-      return answer;
-    }
-  }
-  return -127;
-}
-
 // Search for "*" by starting with at least one byte load and switching to
 // aligned SSE2 128 bit loads when an aligned address is reached. This may load
 // data after the end of the string, but can never cause a fault because the
