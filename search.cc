@@ -51,9 +51,11 @@ void set_up() {
 typedef int searcher(const char* s, int len);
 
 void time(searcher* fn, const char* name) {
+  double ns;
+  double gb;
   for (int size = 0; size < 2; size++) {
     struct timeval start, end;
-    int sum = 0;
+    long sum = 0;
     gettimeofday(&start, 0);
     int limit = size ? 1000000 : 100000000;
     for (int i = 0; i < limit; i++) {
@@ -65,10 +67,18 @@ void time(searcher* fn, const char* name) {
       }
     }
     gettimeofday(&end, 0);
-    int ms = (end.tv_sec - start.tv_sec) * 1000;
-    ms += (end.tv_usec - start.tv_usec) / 1000;
-    printf("(%5s) %17s: %5dms %d\n", size ? "big" : "small", name, ms, sum);
+    long us = (end.tv_sec - start.tv_sec) * 1000000;
+    us += end.tv_usec - start.tv_usec;
+    if (size) {
+      long bytes_per_s = (sum * 1000000) / us;
+      gb = bytes_per_s / (1024.0 * 1024 * 1024);
+    } else {
+      long ps = us;
+      ps *= 1000000;
+      ns = ps / (1000.0 * limit);
+    }
   }
+  printf("%17s:                %.1f GiB/s   %.1f ns/string\n", name, gb, ns);
 }
 
 void test(const char* name, searcher* testee, int bytes) {
@@ -183,6 +193,7 @@ int main() {
   test("twosse2_early", test_twosse2_early, 2);
   test("twobsse2", test_twobsse2, 2);
   test("pure_twobsse2", test_pure_twobsse2, 2);
+  printf("\nSingle char search\n\n");
   time(test_naive, "naive");
   time(test_memchr, "memchr");
   time(test_pure_mycroft4, "pure_mycroft4");
@@ -192,6 +203,7 @@ int main() {
   time(test_pure_sse2, "pure_sse2");
   time(test_sse2, "sse2");
   time(test_sse2_and_mycroft4, "sse2_and_mycroft4");
+  printf("\nBigram search\n\n");
   time(test_twobyte, "twobyte");
   time(test_mycroft2, "mycroft2");
   time(test_pure_mycroft2, "pure_mycroft2");
