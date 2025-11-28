@@ -1,4 +1,4 @@
-# StruhChur
+# StruhChuh
 
 This is a little experiment to find out the fastest way to write a
 strchr-like function on modern hardware.  Some of the fastest versions
